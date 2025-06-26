@@ -34,7 +34,7 @@ export default function User({ isSidebarOpen }) {
             {/* Header */}
             <div className="bg-white flex justify-between p-6 shadow">
                 <h1 className="text-sm mt-2 font-bold">
-                    Welcome back, <span className="text-sm">{data?.name || user?.name}</span>
+                    Welcome back, <span className="text-sm">{data?.name}</span>
                 </h1>
              
             </div>

@@ -3,15 +3,13 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-export default function CreateCategoryModal({ closeModal, setCategories }) {
-    const [name, setName] = useState("");
+export default function EditCategory({ closeModal, setCategories, category }) {
+    const [name, setName] = useState(category?.name || "");
     const [imageFile, setImageFile] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(category?.image || null);
+    const [imagePublicId] = useState(category?.imagePublicId || ""); // Needed for backend
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
-
-    const get = JSON.parse(localStorage.getItem("user"));
-    const id = get?.value?.id;
 
     useEffect(() => {
         if (imageFile) {
@@ -24,7 +22,6 @@ export default function CreateCategoryModal({ closeModal, setCategories }) {
     const validate = () => {
         const newErrors = {};
         if (!name.trim()) newErrors.name = "Category name is required.";
-        if (!imageFile) newErrors.image = "Category image is required.";
         return newErrors;
     };
 
@@ -40,10 +37,13 @@ export default function CreateCategoryModal({ closeModal, setCategories }) {
         try {
             const formData = new FormData();
             formData.append("name", name);
-            formData.append("image", imageFile);
+            if (imageFile) {
+                formData.append("image", imageFile);
+                formData.append("imagePublicId", imagePublicId); // ✅ Include if replacing
+            }
 
-            const resp = await axios.post(
-                `http://localhost:7000/api/v1/create-category/${id}`,
+            const resp = await axios.put(
+                `http://localhost:7000/api/v1/update-category/${category._id}`,
                 formData,
                 {
                     headers: {
@@ -53,11 +53,11 @@ export default function CreateCategoryModal({ closeModal, setCategories }) {
             );
 
             if (resp.data.success) {
-                setCategories((prev) => [...prev, resp.data.data]);
-                setName("");
-                setImageFile(null);
+                setCategories((prev) =>
+                    prev.map((cat) => (cat._id === category._id ? resp.data.data : cat))
+                );
                 closeModal();
-                toast.success(resp.data.msg);
+                toast.success(resp.data.msg || "Category updated successfully");
             }
         } catch (error) {
             toast.error(error?.response?.data?.message || error?.response?.data?.msg || "Something went wrong.");
@@ -82,81 +82,50 @@ export default function CreateCategoryModal({ closeModal, setCategories }) {
                     &times;
                 </button>
 
-                <h2 className="text-lg font-semibold mb-4">Create Category</h2>
+                <h2 className="text-lg font-semibold mb-4">Edit Category</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Name Input */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Category Name
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
                         <input
                             type="text"
                             value={name}
-                            name="name"
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full border border-gray-300 px-4 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                            className="w-full border border-gray-300 px-4 py-2 rounded-md text-sm"
                             placeholder="Enter category name"
                         />
-                        {errors.name && (
-                            <p className="text-xs text-red-500 mt-1">{errors.name}</p>
-                        )}
+                        {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
                     </div>
 
-                    {/* Image Upload */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Category Image
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Category Image</label>
+                        <label htmlFor="category-image" className="block border-dashed border-2 p-4 text-center cursor-pointer">
+                            Click to upload
                         </label>
-
-                        <label
-                            htmlFor="category-image"
-                            className="block w-full border border-dashed border-gray-300 rounded-md p-4 bg-gray-50 hover:bg-gray-100 transition cursor-pointer text-center"
-                        >
-                            <p className="text-sm text-gray-500">Click to upload an image</p>
-                        </label>
-
                         <input
                             id="category-image"
                             type="file"
-                            name="image"
                             accept="image/*"
                             style={{ display: "none" }}
-                            onChange={(e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                    setImageFile(file);
-                                    setErrors((prev) => ({ ...prev, image: null }));
-                                }
-                            }}
+                            onChange={(e) => setImageFile(e.target.files[0])}
                         />
-
-                        {errors.image && (
-                            <p className="text-xs text-red-500 mt-1">{errors.image}</p>
-                        )}
-
                         {previewUrl && (
                             <img
                                 src={previewUrl}
                                 alt="Preview"
-                                className="mt-3 h-32 w-full object-contain rounded-lg border border-gray-200 shadow-sm"
+                                className="mt-3 h-32 w-full object-contain rounded-lg border"
                             />
                         )}
                     </div>
 
-                    {/* Buttons */}
                     <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            className="px-4 py-2 cursor-pointer text-sm border rounded hover:bg-gray-100"
-                            onClick={closeModal}
-                        >
+                        <button type="button" onClick={closeModal} className="px-4 cursor-pointer py-2 border rounded">
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 cursor-pointer text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+                            className="px-4 py-2  cursor-pointer text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
                         >
                             {loading ? (
                                 <>

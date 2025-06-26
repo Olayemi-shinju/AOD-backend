@@ -67,7 +67,7 @@ export default function Messages({ isSidebarOpen }) {
       {/* Header */}
       <div className="bg-white p-6 shadow">
         <h1 className="text-sm font-bold">
-          Welcome back, <span className="text-sm font-normal">{data?.name || user?.name}</span>
+          Welcome back, <span className="text-sm font-normal">{data?.name}</span>
         </h1>
       </div>
 

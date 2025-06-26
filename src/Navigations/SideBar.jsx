@@ -93,7 +93,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         </Link>
         {isOpen && (
           <div>
-            <p className="font-semibold">{data?.name || user?.name}</p>
+            <p className="font-semibold">{data?.name}</p>
             <p className="text-xs text-white/80">Admin</p>
           </div>
         )}

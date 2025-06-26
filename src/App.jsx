@@ -2,7 +2,7 @@
 import { Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import NetworkWrapper from "./components/networkRoute";
 import Dashboard from "./pages/Dashboard";
 import Categories from "./pages/Categories";
 import Products from "./pages/Products";
@@ -35,32 +35,34 @@ export default function App() {
       />
 
       <CartProvider>
-        <Routes>
-          {/* ✅ Protected Routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <SideBarLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="categories" element={<Categories />} />
-            <Route path="products/:id" element={<Products />} />
-            <Route path="orders" element={<Orders />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="messages" element={<Messages />} />
-            <Route path="users" element={<User />} />
-          </Route>
+        <NetworkWrapper>
+          <Routes>
+            {/* ✅ Protected Routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <SideBarLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="categories" element={<Categories />} />
+              <Route path="products/:id" element={<Products />} />
+              <Route path="orders" element={<Orders />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="messages" element={<Messages />} />
+              <Route path="users" element={<User />} />
+            </Route>
 
-          {/* ✅ Public Routes */}
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/otp" element={<OTPForm />} />
-          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        </Routes>
+            {/* ✅ Public Routes */}
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/otp" element={<OTPForm />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+          </Routes>
+        </NetworkWrapper>
       </CartProvider>
     </>
   );

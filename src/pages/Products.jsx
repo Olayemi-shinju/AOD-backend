@@ -67,7 +67,7 @@ export default function Products({ isSidebarOpen }) {
         {/* Header */}
         <div className="bg-white xl:flex items-center justify-between p-6 shadow">
             <h1 className="text-sm mt-2 font-bold">
-                Welcome back, <span className="text-sm">{data?.name || user?.name}</span>
+                Welcome back, <span className="text-sm">{data?.name}</span>
             </h1>
             <div>
                     <button className="p-3 bg-blue-400  mt-2 text-white cursor-pointer font-semibold text-sm rounded-md">Create Product</button>

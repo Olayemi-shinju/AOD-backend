@@ -94,9 +94,7 @@ const OTPForm = () => {
       });
       if (response.data.success === true) {
         navigate('/login')
-        console.log(response)
         toast.success(response?.data.msg);
-        console.log('hello world')
         setOtp(Array(OTP_LENGTH).fill(''));
       } else {
         toast.error(response?.data.msg);

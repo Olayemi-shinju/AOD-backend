@@ -3,33 +3,42 @@ import { FaTrash, FaEdit } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import CreateCategoryModal from "../Modal/CreateCategory";
+import EditCategory from "../Modal/EditCategory";
 import { CartContext } from "../Contexts/Context";
-const initialCategories = [
-    { id: 1, name: "Electronics", image: "https://th.bing.com/th/id/OIF.568kucYlmhJBgzlOmrFkEg?w=261&h=188&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
-    { id: 2, name: "Fashion", image: "https://th.bing.com/th/id/OIF.568kucYlmhJBgzlOmrFkEg?w=261&h=188&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
-    { id: 3, name: "Home & Kitchen", image: "https://th.bing.com/th/id/OIF.568kucYlmhJBgzlOmrFkEg?w=261&h=188&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
-    { id: 4, name: "Books", image: "https://th.bing.com/th/id/OIF.568kucYlmhJBgzlOmrFkEg?w=261&h=188&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3" },
-];
+import axios from "axios";
 
 export default function Categories({ isSidebarOpen }) {
-    const [categories, setCategories] = useState(initialCategories);
+    const [categories, setCategories] = useState([]);
     const [isOnline, setIsOnline] = useState(true);
     const [loading, setLoading] = useState(true);
-    const [open, setOpen] = useState(false)
-  const { user, data } = useContext(CartContext)
+    const [open, setOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const { user, data } = useContext(CartContext);
 
-    const openModal = ()=>{
-        setOpen(true)
-    }
+    useEffect(() => {
+        const fetchCategory = async () => {
+            try {
+                setLoading(true);
+                const resp = await axios.get('http://localhost:7000/api/v1/get-category');
+                setLoading(false);
+                if (resp.data.success) {
+                    setCategories(resp.data.data);
+                } else {
+                    setCategories([]);
+                }
+            } catch (error) {
+                setLoading(false);
+                console.log(error);
+            }
+        };
 
-    const closeModal = ()=>{
-        setOpen(false)
-    }
+        fetchCategory();
+    }, []);
 
     useEffect(() => {
         const timer = setTimeout(() => setLoading(false), 1000);
         const updateOnlineStatus = () => setIsOnline(navigator.onLine);
-
         window.addEventListener("online", updateOnlineStatus);
         window.addEventListener("offline", updateOnlineStatus);
         updateOnlineStatus();
@@ -41,19 +50,21 @@ export default function Categories({ isSidebarOpen }) {
         };
     }, []);
 
-    const handleDelete = (id) => {
-        setCategories((prev) => prev.filter((cat) => cat.id !== id));
+    const openModal = () => setOpen(true);
+    const closeModal = () => setOpen(false);
+    const closeEditModal = () => {
+        setSelectedCategory(null);
+        setEditModalOpen(false);
     };
 
-    const handleEdit = (id) => {
-        const newName = prompt("Enter new category name:");
-        if (newName?.trim()) {
-            setCategories((prev) =>
-                prev.map((cat) =>
-                    cat.id === id ? { ...cat, name: newName.trim() } : cat
-                )
-            );
-        }
+    const handleDelete = (id) => {
+        setCategories((prev) => prev.filter((cat) => cat._id !== id));
+        // Add axios delete call here if needed
+    };
+
+    const handleEdit = (category) => {
+        setSelectedCategory(category);
+        setEditModalOpen(true);
     };
 
     if (!isOnline) {
@@ -75,58 +86,58 @@ export default function Categories({ isSidebarOpen }) {
 
     return (
         <div className={`transition-all duration-300 ${isSidebarOpen ? '' : ''}`}>
-            {/* Header */}
             <div className="bg-white xl:flex mt-2 items-center justify-between p-6 shadow">
                 <h1 className="text-sm font-bold">
-                    Welcome back, <span className="text-sm">{data?.name || user?.name}</span>
+                    Welcome back, <span className="text-sm">{data?.name}</span>
                 </h1>
                 <button onClick={openModal} className="p-3 cursor-pointer mt-2 bg-blue-400 text-white font-semibold text-sm rounded-md">
                     Create Category
                 </button>
             </div>
 
-            {/* Categories Card */}
             <div className="p-6">
                 <div className="bg-white p-4 rounded-lg shadow">
                     <h2 className="text-2xl font-bold mb-4">Categories</h2>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {categories.map((cat) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {categories?.map((cat) => (
                             <motion.div
-                                key={cat.id}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
+                                key={cat._id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="bg-gray-100 rounded-lg p-2 shadow flex flex-col items-center relative"
+                                className="bg-white rounded-xl shadow-md overflow-hidden relative group hover:shadow-lg transition-shadow"
                             >
-                                <Link to={`/product/${cat.id}`}>
+                                <Link to={`/product/${cat._id}`} className="block">
                                     <img
                                         src={cat.image}
                                         alt={cat.name}
-                                        className="w-full h-28 object-contain rounded-md mb-2"
+                                        className="w-full h-40 object-contain bg-gray-50 transition-transform duration-200 group-hover:scale-105"
                                         onError={(e) =>
                                             (e.target.src = "https://via.placeholder.com/150?text=Image+Not+Found")
                                         }
                                     />
                                 </Link>
-                                <span className="text-sm font-medium text-center">{cat.name}</span>
 
-                                {/* Action Buttons */}
-                                <div className="absolute top-2 right-2 flex space-x-2">
-                                    <button
-                                        onClick={() => handleEdit(cat.id)}
-                                        className="text-yellow-500 cursor-pointer hover:text-yellow-600"
-                                        title="Edit"
-                                    >
-                                        <FaEdit size={14} />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(cat.id)}
-                                        className="text-red-500 cursor-pointer hover:text-red-700"
-                                        title="Delete"
-                                    >
-                                        <FaTrash size={14} />
-                                    </button>
+                                <div className="p-2 flex justify-between items-center">
+                                    <h3 className="text-base font-semibold text-gray-800 truncate">{cat.name}</h3>
+
+                                    <div className="flex flex-col items-center gap-2">
+                                        <button
+                                            onClick={() => handleEdit(cat)}
+                                            className="text-gray-500 cursor-pointer hover:text-yellow-500 transition-colors"
+                                            title="Edit"
+                                        >
+                                            <FaEdit size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(cat._id)}
+                                            className="text-gray-500 hover:text-red-500 cursor-pointer transition-colors"
+                                            title="Delete"
+                                        >
+                                            <FaTrash size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}
@@ -136,14 +147,27 @@ export default function Categories({ isSidebarOpen }) {
                             </div>
                         )}
                     </div>
+
                 </div>
             </div>
-            {
-                open && <div>
-                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" onClick={closeModal}></div>
-                    <CreateCategoryModal closeModal={closeModal}/>
-                </div>
-            }
+
+            {open && (
+                <>
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
+                    <CreateCategoryModal closeModal={closeModal} setCategories={setCategories} />
+                </>
+            )}
+
+            {editModalOpen && selectedCategory && (
+                <>
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"></div>
+                    <EditCategory
+                        closeModal={closeEditModal}
+                        setCategories={setCategories}
+                        category={selectedCategory}
+                    />
+                </>
+            )}
         </div>
     );
 }

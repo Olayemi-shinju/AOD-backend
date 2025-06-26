@@ -64,7 +64,7 @@ export default function Dashboard() {
         <div className="w-full flex items-center justify-between">
           <div className="text-md font-bold hidden sm:block">
             Welcome back,{" "}
-            <span className="font-normal">{data?.name || user?.name}</span>
+            <span className="font-normal">{data?.name}</span>
           </div>
 
           <div className="flex items-center gap-4">
